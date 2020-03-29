@@ -35,14 +35,14 @@ func (e Failure) Error() string {
 	return e.MessageString()
 }
 
-func (e *Failure) WitMessage(message string) Failure {
+func (e *Failure) WitMessage(message string) *Failure {
 	e.ExtraMessage = message
-	return *e
+	return e
 }
 
-func (e *Failure) WitCode(code int) Failure {
+func (e *Failure) WitCode(code int) *Failure {
 	e.Code = code
-	return *e
+	return e
 }
 
 func Wrap(err interface{}) Failure {
