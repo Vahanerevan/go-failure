@@ -45,10 +45,12 @@ func (e *Failure) WitCode(code int) *Failure {
 	return e
 }
 
-func Wrap(err interface{}) Failure {
+
+
+func Wrap(err interface{}) *Failure {
 	switch err.(type) {
 	case Failure:
-		return err.(Failure)
+		return err.(*Failure)
 	case error:
 		return New(err.(error).Error(), mainConfig.DefaultErrorCode)
 	case string:
@@ -62,11 +64,11 @@ func (e Failure) Panic() {
 	panic(e)
 }
 
-func New(message string, code int) Failure {
-	return Failure{Code: code, Message: message}
+func New(message string, code int) *Failure {
+	return &Failure{Code: code, Message: message}
 }
 
-func Define(message string, code int) Failure {
+func Define(message string, code int) *Failure {
 	return New(message, code)
 }
 
@@ -78,6 +80,6 @@ func IsFailure(toTest error) bool {
 	return false
 }
 
-func Default() Failure {
+func Default() *Failure {
 	return New(mainConfig.WrapUnknownMessage, mainConfig.DefaultErrorCode)
 }
