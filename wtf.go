@@ -1,7 +1,7 @@
 package wtf
 
 import (
-	_ "errors"
+	"errors"
 	"fmt"
 )
 
@@ -16,6 +16,12 @@ func AddDefaultCaseFailure(inCase error, message string, code int) {
 
 func AddUnknownErrorHookFailure(f HookFunction) {
 	userDefinedHooks = append(userDefinedHooks, f)
+}
+
+func callHooks(err error) {
+	for _, v := range userDefinedHooks {
+		v(err)
+	}
 }
 
 func init() {
@@ -68,16 +74,17 @@ func Wrap(err interface{}) *Failure {
 	case Failure:
 		return err.(*Failure)
 	case error:
-
 		userDef, ok := userDefinedDefaults[err.(error)]
 		if true == ok {
 			return userDef
 		}
-
+		callHooks(err.(error))
 		return New(err.(error).Error(), mainConfig.DefaultErrorCode)
 	case string:
+		callHooks(errors.New(err.(string)))
 		return New(err.(string), mainConfig.DefaultErrorCode)
 	default:
+		callHooks(errors.New(err.(string)))
 		return New(mainConfig.WrapUnknownMessage, mainConfig.DefaultErrorCode)
 	}
 }
