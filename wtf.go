@@ -2,15 +2,17 @@ package wtf
 
 import (
 	"fmt"
+	"reflect"
 )
 
 type HookFunction func(*Failure)
 
-var userDefinedDefaults = map[error]*Failure{}
+var userDefinedDefaults = map[string]*Failure{}
 var userDefinedHooks []HookFunction
 
 func AddDefaultCaseFailure(inCase error, message string, code int) {
-	userDefinedDefaults[inCase] = New(message, code)
+	rt := reflect.TypeOf(inCase).String()
+	userDefinedDefaults[rt] = New(message, code)
 }
 
 func AddUnknownErrorHookFailure(f HookFunction) {
@@ -87,12 +89,9 @@ func Wrap(err interface{}) *Failure {
 	case Failure:
 		return err.(*Failure)
 	case error:
-		original, cok := err.(error)
-		if cok {
-			userDef, ok := userDefinedDefaults[original]
-			if true == ok {
-				return userDef.setOrigin(err)
-			}
+		userDef, ok := userDefinedDefaults[reflect.TypeOf(err).String()]
+		if true == ok {
+			return userDef.setOrigin(err)
 		}
 		return New(err.(error).Error(), mainConfig.DefaultErrorCode).setOrigin(err)
 	case string:
