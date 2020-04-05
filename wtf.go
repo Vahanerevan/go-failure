@@ -5,10 +5,21 @@ import (
 	"fmt"
 )
 
-var userDefineDefaults = map[error]*Failure{}
+type HookFunction func(error)
+
+var userDefinedDefaults = map[error]*Failure{}
+var userDefinedHooks []HookFunction
 
 func AddDefaultCaseFailure(inCase error, message string, code int) {
-	userDefineDefaults[inCase] = New(message, code)
+	userDefinedDefaults[inCase] = New(message, code)
+}
+
+func AddUnknownErrorHookFailure(f HookFunction) {
+	userDefinedHooks = append(userDefinedHooks, f)
+}
+
+func init() {
+	userDefinedHooks = make([]HookFunction, 0)
 }
 
 type Config struct {
@@ -58,7 +69,7 @@ func Wrap(err interface{}) *Failure {
 		return err.(*Failure)
 	case error:
 
-		userDef, ok := userDefineDefaults[err.(error)]
+		userDef, ok := userDefinedDefaults[err.(error)]
 		if true == ok {
 			return userDef
 		}
