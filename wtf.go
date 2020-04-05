@@ -87,9 +87,12 @@ func Wrap(err interface{}) *Failure {
 	case Failure:
 		return err.(*Failure)
 	case error:
-		userDef, ok := userDefinedDefaults[err.(error)]
-		if true == ok {
-			return userDef.setOrigin(err)
+		original, cok := err.(error)
+		if cok {
+			userDef, ok := userDefinedDefaults[original]
+			if true == ok {
+				return userDef.setOrigin(err)
+			}
 		}
 		return New(err.(error).Error(), mainConfig.DefaultErrorCode).setOrigin(err)
 	case string:
