@@ -5,6 +5,12 @@ import (
 	"fmt"
 )
 
+var userDefineDefaults = map[error]*Failure{}
+
+func AddDefaultCaseFailure(inCase error, message string, code int) {
+	userDefineDefaults[inCase] = New(message, code)
+}
+
 type Config struct {
 	DefaultErrorCode   int
 	WrapUnknownMessage string
@@ -46,10 +52,17 @@ func (e *Failure) WitCode(code int) *Failure {
 }
 
 func Wrap(err interface{}) *Failure {
+
 	switch err.(type) {
 	case Failure:
 		return err.(*Failure)
 	case error:
+
+		userDef, ok := userDefineDefaults[err.(error)]
+		if true == ok {
+			return userDef
+		}
+
 		return New(err.(error).Error(), mainConfig.DefaultErrorCode)
 	case string:
 		return New(err.(string), mainConfig.DefaultErrorCode)
