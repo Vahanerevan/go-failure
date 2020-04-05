@@ -30,7 +30,7 @@ func Configure(config Config) {
 type Failure struct {
 	Code         int    `json:"code"`
 	Message      string `json:"message"`
-	ExtraMessage string
+	ExtraMessage string `json:"-"`
 }
 
 func (e Failure) MessageString() string {
