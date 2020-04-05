@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-type HookFunction func(error)
+type HookFunction func(*Failure)
 
 var userDefinedDefaults = map[error]*Failure{}
 var userDefinedHooks []HookFunction
@@ -17,7 +17,7 @@ func AddUnknownErrorHookFailure(f HookFunction) {
 	userDefinedHooks = append(userDefinedHooks, f)
 }
 
-func callHooks(err error) {
+func callHooks(err *Failure) {
 	for _, v := range userDefinedHooks {
 		v(err)
 	}
