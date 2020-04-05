@@ -1,7 +1,6 @@
 package wtf
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -45,13 +44,14 @@ func Configure(config Config) {
 }
 
 type Failure struct {
-	Code         int    `json:"code"`
-	Message      string `json:"message"`
-	ExtraMessage string `json:"-"`
+	Code         int         `json:"code"`
+	Message      string      `json:"message"`
+	extraMessage string      `json:"-"`
+	origin       interface{} `json:"-"`
 }
 
 func (e Failure) MessageString() string {
-	return fmt.Sprintf("%s !extra[%s]", e.Message, e.ExtraMessage)
+	return fmt.Sprintf("%s !extra[%s]", e.Message, e.extraMessage)
 }
 
 func (e Failure) Error() string {
@@ -59,7 +59,7 @@ func (e Failure) Error() string {
 }
 
 func (e *Failure) WithMessage(message string) *Failure {
-	e.ExtraMessage = message
+	e.extraMessage = message
 	return e
 }
 
@@ -68,24 +68,34 @@ func (e *Failure) WitCode(code int) *Failure {
 	return e
 }
 
-func Wrap(err interface{}) *Failure {
+func (e *Failure) setOrigin(origin interface{}) *Failure {
+	e.origin = origin
+	return e
+}
 
+func (e *Failure) GetOrigin() interface{} {
+	return e.origin
+}
+
+func (e *Failure) Hook() *Failure {
+	callHooks(e)
+	return e
+}
+
+func Wrap(err interface{}) *Failure {
 	switch err.(type) {
 	case Failure:
 		return err.(*Failure)
 	case error:
 		userDef, ok := userDefinedDefaults[err.(error)]
 		if true == ok {
-			return userDef
+			return userDef.setOrigin(err)
 		}
-		callHooks(err.(error))
-		return New(err.(error).Error(), mainConfig.DefaultErrorCode)
+		return New(err.(error).Error(), mainConfig.DefaultErrorCode).setOrigin(err)
 	case string:
-		callHooks(errors.New(err.(string)))
-		return New(err.(string), mainConfig.DefaultErrorCode)
+		return New(err.(string), mainConfig.DefaultErrorCode).setOrigin(err)
 	default:
-		callHooks(errors.New(err.(string)))
-		return New(mainConfig.WrapUnknownMessage, mainConfig.DefaultErrorCode)
+		return New(mainConfig.WrapUnknownMessage, mainConfig.DefaultErrorCode).setOrigin(err)
 	}
 }
 
