@@ -48,14 +48,14 @@ func Configure(config Config) {
 type Failure struct {
 	Code         int         `json:"code"`
 	Message      string      `json:"message"`
-	extraMessage *string     `json:"-"`
+	ExtraMessage *string     `json:"details"`
 	origin       interface{} `json:"-"`
 }
 
 func (e Failure) MessageString() string {
 	var extra string
-	if nil != e.extraMessage {
-		extra = fmt.Sprintf("!extra[ %s ]", e.extraMessage)
+	if nil != e.ExtraMessage {
+		extra = fmt.Sprintf("!extra[ %s ]", e.ExtraMessage)
 	}
 	return fmt.Sprintf("%s %s", e.Message, extra)
 }
@@ -65,7 +65,7 @@ func (e Failure) Error() string {
 }
 
 func (e *Failure) WithMessage(message string) *Failure {
-	e.extraMessage = &message
+	e.ExtraMessage = &message
 	return e
 }
 
